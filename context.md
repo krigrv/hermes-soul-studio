@@ -48,24 +48,22 @@ Hermes Soul Studio
 Tagline:
 
 ```txt
-Build the operating system for your AI operator.
+Teach your AI how you actually work.
 ```
 
 Short product description:
 
 ```txt
-A field-agnostic setup generator for turning any AI assistant into a structured operator with brains, skills, approval gates, external handoffs, exports, and backups.
+A guided 5-step generator that turns any AI assistant (Claude, Codex, Cursor, ChatGPT) into a structured operator with brains, skills, approval gates, external handoffs, exports, and backups. Everything runs in the browser.
 ```
 
-This project should feel like a setup studio, not a generic form builder.
+This project should feel like a guided setup, not a generic form builder.
 
 ---
 
 ## Target users
 
-The product is intentionally field-agnostic.
-
-Potential users:
+Field-agnostic. Potential users:
 
 - Founders
 - Designers
@@ -106,26 +104,55 @@ Export targets
 
 ## Current app behavior
 
-The app currently lets users:
+The app is structured as an **intro screen + 5-step guided wizard + review screen**.
 
-1. Start from presets
-2. Define the operator
-3. Add/remove custom roles
-4. Create/edit workspaces
-5. Add workspaces from a library
-6. Select external tools
-7. Select export targets
-8. Enable backup script generation
-9. Preview generated `SOUL.md`
-10. View generated file tree
-11. View a live brain map
-12. View setup quality score
-13. Copy test prompts
-14. Download a complete setup ZIP
+### Intro
 
-The app is local-first. Generation happens in the browser using JSZip.
+Shown on first visit (dismissal stored in `localStorage` as `introSeen`). Includes:
 
-No database, login, or backend is currently required.
+- Headline + plain-English pitch (no jargon)
+- "Get started" CTA and a "View on GitHub" link
+- 3 value cards (Tell us about your work / Set safe defaults / Download & paste)
+- "Run it locally" panel with `git clone` instructions for cloning into `~/.hermes` and a note that dot-folders are hidden on macOS/Linux (with view-toggle instructions)
+
+Clicking the Hermes logo in the top bar at any time returns to the intro.
+
+### Steps
+
+The wizard shows **one step at a time**, with a horizontal step indicator placed in its own bar **below the top bar** (not inside the header). Each step has Back / Next buttons; the final step has a Download button.
+
+1. **About you** — name, AI name, company, profile name, roles (chip input), tone, what to avoid.
+2. **Your work** — workspaces shown as tabs; for each tab the user edits one workspace inline. Purpose / Common tasks / Approvals are **checkbox groups** (not free-text), driven by the workspace **name slug** (a library of 10 workspace types + a custom fallback). Risk is a 3-option radio (Low / Medium / High). Every checkbox group has an "Add your own…" input that appends custom tags; pre-existing custom values are preserved as removable purple pills.
+3. **Other tools** — toggles for Codex, Claude, Google Drive, Telegram, Notion, GitHub.
+4. **Where to use it** — export targets (Hermes, Codex, Claude, Cursor, ChatGPT).
+5. **Backup** — toggle hourly local backup script + retention count.
+6. **Review & download** — file count, ZIP download (with macOS hidden-folder hint), validation warnings, behavior preview, brain map, expandable test prompts / file tree / SOUL.md preview.
+
+### Theme
+
+- Light / dark / system theme. A no-flash inline script in `app/layout.jsx` sets `dark` on `<html>` before paint based on `localStorage.theme` (if set) or `prefers-color-scheme`.
+- A Sun/Moon toggle in the top bar lets the user override the system preference. The choice is persisted to `localStorage.theme`.
+- Tailwind is configured with `darkMode: 'class'`. All components have `dark:` variants.
+- `app/layout.jsx` declares a `viewport.themeColor` array for light + dark schemes.
+
+### Right-side summary
+
+A compact sticky panel shows progress %, workspace count, tools on, exports on, files-to-make, and a "Download now" shortcut on every non-review step.
+
+### Top bar
+
+- Hermes logo (clickable — returns to intro)
+- Share-link button (copies a `#c=` hash-encoded URL of the current config)
+- GitHub link → <https://github.com/krigrv/hermes-soul-studio>
+- Theme toggle (Sun / Moon)
+
+### Removed / dropped features
+
+- The earlier preset-template picker has been removed.
+- The earlier JSON import / export buttons have been removed.
+- The earlier all-in-one long-scroll form has been replaced by the wizard.
+
+The app remains local-first. Generation happens in the browser using JSZip.
 
 ---
 
@@ -139,12 +166,11 @@ Users should always see what is being created.
 
 Current visibility features:
 
-- Live `SOUL.md` preview
-- Brain map
-- Generated file tree
-- File count
-- Workspace count
-- Tool count
+- Live `SOUL.md` preview (on review step, behind a `<details>`)
+- Brain map (on review step)
+- Generated file tree (on review step)
+- File count, workspace count, tool count, export count in the sticky summary
+- Behavior preview that classifies an example task
 
 ### Feedback
 
@@ -152,12 +178,13 @@ Every action should visibly affect the generated system.
 
 Current feedback features:
 
-- Setup score updates
+- Sticky summary updates live (score %, workspace count, etc.)
 - Brain map updates
 - File tree updates
 - Role chips update
 - Tool/export selection states update
 - Test prompts change with workspaces
+- "Downloaded" confirmation flashes on the download button
 
 ### Constraints
 
@@ -165,8 +192,8 @@ The UI should prevent unsafe AI operator behavior.
 
 Current constraints:
 
-- Approval rules per workspace
-- Risk labels
+- Approval rules per workspace (checkbox set tuned per workspace type)
+- Risk radio (Low / Medium / High) with plain-English descriptions
 - External action boundaries
 - Backup exclusions for secrets/tokens
 - Codex/Claude handoff separation
@@ -191,10 +218,12 @@ Users should be able to test and recover.
 
 Current recovery features:
 
+- Undo for deleted workspaces (6-second toast)
 - Test prompt generator
 - Download ZIP
 - Backup script generation
 - Local-first browser generation
+- Share link encodes the whole config in the URL hash
 
 ---
 
@@ -238,6 +267,54 @@ exports/
 ├── codex/SKILL.md
 └── claude/SKILL.md
 ```
+
+Note: on macOS/Linux, the `.agent/` folder is hidden by default in file browsers because the name starts with a dot. The review screen reminds the user to press `Cmd ⇧ .` in Finder to reveal it.
+
+---
+
+## File-count math (for sanity checks)
+
+For a config with N workspaces and all exports/tools enabled:
+
+```
+1  active_profile
+2  .agent/SOUL.md  +  .agent/profiles/{profile}/SOUL.md
+N×4  per-workspace brain files (SOUL, rules, agents, skill-map)
+6×2  skills × 2 paths (.agent/skills + .agent/profiles/{profile}/skills)
+2  execution-log.md + test-prompts.md
+1  hourly-agent-backup.sh
+4  exports/.cursor/rules.md + chatgpt-custom-instructions.txt + codex/SKILL.md + claude/SKILL.md
+1  README.md
+```
+
+So `total = 23 + 4N`. With 6 workspaces → **47 files**.
+
+---
+
+## Setup score (heuristic)
+
+`lib/score.js` averages five sub-scores into the headline %:
+
+- **Identity** — non-empty (>4 chars) of userName / operatorName / roles / tone × 25, capped 100
+- **Workspaces** — count × 18 + bonus 20 if ≥4, capped 100
+- **Approval Safety** — % of workspaces whose approvals text length is > 15 chars
+- **Tool Routing** — toggled-on tools × 18, capped 100
+- **Exports** — toggled-on exports × 20, capped 100
+
+This is a "how complete is your setup" hint, not a security audit.
+
+---
+
+## Workspace options library
+
+`lib/workspace-options.js` defines exhaustive Purpose / Tasks / Approvals option sets keyed by workspace slug:
+
+```
+core, business, coding, design, education, admin,
+academics, creative, finance, research, custom (fallback)
+```
+
+When the user renames a workspace, the option set switches to the matching slug. Unknown names use `custom` (a broad union). Pre-existing custom values are preserved as purple "extra" pills with an X-to-remove.
 
 ---
 
@@ -314,14 +391,12 @@ Helps users decide what to focus on first across workspaces.
 
 ## Current tech stack
 
-Current MVP stack:
-
 ```txt
-Next.js
-React
-Tailwind CSS
-JSZip
-lucide-react
+Next.js 16 (app router, turbopack dev)
+React 19
+Tailwind CSS 3 (darkMode: class)
+JSZip 3.10
+lucide-react 1.16 (old build — no Github icon; inline SVG is used instead)
 ```
 
 The project is built as a browser-only generator.
@@ -330,35 +405,34 @@ The project is built as a browser-only generator.
 
 ## Current source files
 
-Typical project files:
-
 ```txt
-app/page.jsx
-app/layout.jsx
-app/globals.css
-tailwind.config.js
-postcss.config.js
-package.json
+app/
+  page.jsx          // wizard, intro, theme toggle, top bar, step bar, all step components
+  layout.jsx        // metadata + theme init script
+  globals.css       // CSS variables for light/dark body bg
+components/
+  Field.jsx         // labelled input / textarea with dark: variants
+  Section.jsx       // (legacy; no longer used by page.jsx)
+  CheckboxGroup.jsx // pill-style multi-select + Add-your-own + RiskRadio
+  BrainMap.jsx      // visualisation of router → workspaces
+  ValidationPanel.jsx
+  BehaviorPreview.jsx
+lib/
+  workspace-library.js  // pre-baked workspace defaults
+  workspace-options.js  // exhaustive option lists per workspace slug
+  presets.js            // TOOL_OPTIONS + EXPORT_TARGETS (PRESETS array still exported but unused)
+  generators.js         // file generators (SOUL, brains, skills, handoffs, backup script)
+  score.js              // setup score heuristic
+  validate.js           // validation warnings
+  behavior.js           // example task classifier for the BehaviorPreview
+  storage.js            // localStorage save/load + share-link hash encode/decode
+  utils.js              // slugify, splitList, safe
+public/
+  favicon.svg, og.svg
 README.md
-context.md
+context.md             // this file
+package.json, tailwind.config.js, postcss.config.js, next.config.mjs
 ```
-
-The main product logic currently lives in:
-
-```txt
-app/page.jsx
-```
-
-This includes:
-
-- Workspace library
-- Presets
-- Tool options
-- Export targets
-- File generators
-- Setup scoring
-- UI components
-- ZIP download logic
 
 ---
 
@@ -366,13 +440,12 @@ This includes:
 
 Visual style:
 
-- Dark UI
+- Dark + light modes (system-aware, toggleable)
 - Orange accent
 - Strong typography
 - Rounded cards
-- System-builder feel
-- Premium but practical
 - Studio/tool hybrid
+- Premium but practical
 
 The product should feel:
 
@@ -416,7 +489,7 @@ The core output is a downloadable setup ZIP.
 
 ### Field-agnostic
 
-Avoid hardcoding one user’s personal context.
+Avoid hardcoding one user's personal context.
 
 Use placeholders:
 
@@ -448,32 +521,22 @@ Users can:
 
 Workspaces can be:
 
-- Added from the library
-- Added manually
+- Added from the workspace library (pills next to the workspace tabs in Step 2)
+- Added blank (`+ Blank`)
 - Edited
-- Removed
+- Removed (with 6-second undo)
 
-Every workspace needs:
+Every workspace stores:
 
 ```txt
-name
-purpose
-tasks
-risk
-approvals
+name        // string — also drives which checkbox option set is shown
+purpose     // comma-separated list, populated by checkboxes + custom adds
+tasks       // comma-separated list
+risk        // "Low" | "Medium" | "High"
+approvals   // comma-separated list
 ```
 
-### Setup score
-
-The setup score is heuristic, not a serious security score.
-
-It checks:
-
-- Identity completeness
-- Workspace count
-- Approval rule quality
-- Tool routing
-- Export targets
+The string-as-comma-list shape is preserved so the existing generator code works unchanged.
 
 ### ZIP generation
 
@@ -481,143 +544,18 @@ JSZip creates the downloadable setup in the browser.
 
 The downloaded files are text-based Markdown/setup files.
 
----
+### Theme persistence
 
-## Known limitations
+- First paint reads `localStorage.theme` ("dark" / "light"), falling back to `matchMedia('(prefers-color-scheme: dark)')`.
+- Toggle button writes the new value to localStorage so it survives reloads.
+- All component colors use `dark:` Tailwind variants. No JS-driven color overrides.
 
-Current MVP limitations:
+### Hidden folder warnings
 
-- No persistent save/load JSON config yet
-- No undo for deleted workspaces yet
-- No advanced validation warnings yet
-- No install wizard yet
-- No hosted backend or user accounts
-- No template marketplace yet
-- No direct GitHub/Vercel integration yet
-- No live preview of generated `.agent` behavior
-- No field-specific deep content packs yet
+Two places mention hidden folders:
 
----
-
-## High-value next improvements
-
-Recommended next build priorities:
-
-### 1. Save/load config JSON
-
-Allow users to export and re-import their form state.
-
-### 2. Undo delete workspace
-
-Add recovery for accidental deletion.
-
-### 3. Validation warnings
-
-Examples:
-
-```txt
-You added Coding but did not enable Codex.
-You selected high-risk Admin but approval rules are vague.
-You have no Core workspace.
-You selected exports but no external tools.
-```
-
-### 4. Better export modes
-
-Make export targets more explicit:
-
-```txt
-Hermes
-Claude
-Codex
-Cursor
-ChatGPT
-Generic local agent
-```
-
-### 5. Install script generator
-
-Generate platform-specific install commands.
-
-### 6. Field-specific packs
-
-Examples:
-
-```txt
-Founder pack
-Design studio pack
-Developer pack
-Student pack
-Creator pack
-Consultant pack
-Agency pack
-Researcher pack
-```
-
-### 7. Preview generated operator behavior
-
-Show example:
-
-```txt
-When you ask: "Help me prioritize today"
-The operator will route to: Core → prioritization-framework
-```
-
-### 8. Onboarding wizard mode
-
-Turn the form into a guided step-by-step wizard for less technical users.
-
-### 9. Advanced mode
-
-Keep the current all-in-one editor for power users.
-
-### 10. Deployment polish
-
-Prepare for Vercel deployment with:
-
-```txt
-SEO metadata
-Open Graph image
-Landing page copy
-Privacy statement
-Terms note
-```
-
----
-
-## Recommended repository structure going forward
-
-```txt
-hermes-soul-studio/
-├── app/
-│   ├── page.jsx
-│   ├── layout.jsx
-│   └── globals.css
-├── components/
-│   ├── Field.jsx
-│   ├── Section.jsx
-│   ├── BrainMap.jsx
-│   ├── SetupScore.jsx
-│   └── WorkspaceEditor.jsx
-├── lib/
-│   ├── generators/
-│   │   ├── soul.js
-│   │   ├── brains.js
-│   │   ├── skills.js
-│   │   ├── exports.js
-│   │   └── backup.js
-│   ├── presets.js
-│   ├── workspace-library.js
-│   ├── score.js
-│   └── zip.js
-├── public/
-├── context.md
-├── README.md
-├── package.json
-└── tailwind.config.js
-```
-
-The current MVP is intentionally compact, but this structure is better for scaling.
+- **Intro page** — the "Run it locally" panel explains that `~/.hermes` is hidden because it starts with a dot, and lists Finder / Terminal / VS Code / Windows reveal steps.
+- **Review step** — the download box notes that `.agent/` inside the ZIP is hidden by default in Finder.
 
 ---
 
@@ -637,58 +575,47 @@ When asked to modify this project:
    - Mapping
    - Recovery
 7. Prefer clean React component extraction if refactoring.
-8. Avoid adding backend complexity unless explicitly requested.
-9. Avoid adding accounts/payments/cloud sync before the generator is polished.
-10. Keep the core value: structured AI operator setup generation.
+8. Preserve the wizard flow (one step on screen at a time) and the step bar's placement **below** the top bar.
+9. When adding new colors, always include `dark:` variants so light mode keeps working.
+10. Avoid adding backend complexity unless explicitly requested.
+11. Avoid adding accounts/payments/cloud sync before the generator is polished.
+12. Keep the core value: structured AI operator setup generation.
 
 ---
 
 ## Quick local dev commands
 
 ```bash
+mkdir -p ~/.hermes && cd ~/.hermes
+git clone https://github.com/krigrv/hermes-soul-studio.git
+cd hermes-soul-studio
 npm install
 npm run dev
 ```
 
-Open:
-
-```txt
-http://localhost:3000
-```
+Open <http://localhost:3000>.
 
 Build:
 
 ```bash
 npm run build
+npm run start
 ```
+
+`~/.hermes` is hidden on macOS/Linux because the folder name starts with a dot. In Finder press `Cmd ⇧ .` to reveal it; in the terminal use `ls -la ~`; in VS Code's open dialog press `Cmd ⇧ .`.
 
 ---
 
 ## Quick deployment path
 
-Recommended:
-
 ```txt
 GitHub repo → Vercel deploy
 ```
 
-Suggested repo name:
-
-```txt
-hermes-soul-studio
-```
-
-Suggested domain ideas:
-
-```txt
-hermessoulstudio.com
-hermessoul.studio
-soulmd.studio
-operatorforge.ai
-```
+Set `NEXT_PUBLIC_SITE_URL` to your deployed URL so OpenGraph metadata uses the right canonical.
 
 ---
 
 ## One-sentence summary for future AI agents
 
-Hermes Soul Studio is a local-first Next.js app that generates downloadable AI operator setups with SOUL.md identity, workspace brains, skill maps, approval gates, external engine handoffs, test prompts, and backup scripts.
+Hermes Soul Studio is a local-first Next.js wizard that walks users through 5 short steps to generate a downloadable AI operator setup (`.agent/` folder + per-app export files) with SOUL.md identity, workspace brains, skill maps, approval gates, external engine handoffs, test prompts, and backup scripts — all in the browser, with light/dark modes and zero accounts.

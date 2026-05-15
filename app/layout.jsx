@@ -3,7 +3,7 @@ import "./globals.css";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://hermes-soul-studio.vercel.app";
 const TITLE = "Hermes Soul Studio — Build the OS for your AI operator";
 const DESCRIPTION =
-  "A local-first generator that turns any AI assistant into a structured operator with workspaces, skills, approval gates, external handoffs, and local backups. No login. No cloud.";
+  "Hermes Soul Studio is a local-first AI operator setup generator. Define the soul, workspace brains, repeatable skills, tool handoffs, approval gates, exports, and local backups for your own AI operator. No login. No cloud.";
 
 export const metadata = {
   metadataBase: new URL(SITE_URL),
@@ -41,13 +41,24 @@ export const metadata = {
     icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
     shortcut: "/favicon.svg",
   },
-  themeColor: "#090909",
   robots: { index: true, follow: true },
 };
+
+export const viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fafafa" },
+    { media: "(prefers-color-scheme: dark)", color: "#090909" },
+  ],
+};
+
+const themeInitScript = `(function(){try{var t=localStorage.getItem('theme');var d=t==='dark'||(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d)document.documentElement.classList.add('dark');}catch(e){}})();`;
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body>{children}</body>
     </html>
   );

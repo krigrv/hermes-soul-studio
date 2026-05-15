@@ -1,6 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="14" fill="#090909"/>
-  <circle cx="32" cy="32" r="18" fill="none" stroke="#f97316" stroke-width="3"/>
-  <circle cx="32" cy="32" r="6" fill="#f97316"/>
-  <path d="M32 8 L32 18 M32 46 L32 56 M8 32 L18 32 M46 32 L56 32" stroke="#f97316" stroke-width="3" stroke-linecap="round"/>
+  <defs>
+    <linearGradient id="hg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="55%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="12" fill="#0a0a0a"/>
+  <!-- Pixel-block "H" matching the logo aesthetic -->
+  <g fill="url(#hg)">
+    <!-- Left vertical -->
+    <rect x="12" y="12" width="10" height="40"/>
+    <!-- Right vertical -->
+    <rect x="42" y="12" width="10" height="40"/>
+    <!-- Crossbar -->
+    <rect x="22" y="28" width="20" height="8"/>
+  </g>
+  <!-- Pixel highlight to mimic the chunky outline look -->
+  <g fill="#78350f" opacity="0.85">
+    <rect x="12" y="48" width="10" height="4"/>
+    <rect x="42" y="48" width="10" height="4"/>
+    <rect x="22" y="32" width="20" height="4"/>
+  </g>
 </svg>

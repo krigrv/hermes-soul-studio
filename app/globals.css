@@ -3,7 +3,13 @@
 @tailwind utilities;
 
 :root {
+  color-scheme: light;
+  --app-bg: #fafafa;
+}
+
+html.dark {
   color-scheme: dark;
+  --app-bg: #090909;
 }
 
 * {
@@ -16,7 +22,8 @@ html {
 
 body {
   margin: 0;
-  background: #090909;
+  background: var(--app-bg);
+  transition: background-color 200ms ease;
 }
 
 button,
