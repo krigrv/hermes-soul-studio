@@ -2,7 +2,7 @@
 
 **Build the OS for your AI operator.**
 
-Hermes Soul Studio is a local-first generator that helps you define an AI operator end-to-end — its **soul** (identity, voice, what it must never do), its **brains** (workspace knowledge per area of your life), its **skills** (repeatable workflows), its **tool handoffs** (Codex, Claude, etc.), its **approval gates**, and an **hourly backup script**. Everything is produced in your browser as a downloadable `.agent/` folder. No login. No cloud. No tracking.
+Hermes Soul Studio is a local-first generator that helps you define your hermes agent end-to-end — its **soul** (identity, voice, what it must never do), its **brains** (workspace knowledge per area of your life), its **skills** (repeatable workflows), its **tool handoffs** (Codex, Claude, etc.), its **approval gates**, and an **hourly backup script**. Everything is produced in your browser as a downloadable `.agent/` folder. No login. No cloud. No tracking.
 
 > A messy chatbot is not an operator. An operator has identity, a workspace map, skills, and a conscience.
 
