@@ -91,11 +91,11 @@ function HermesMark({ size = 28 }) {
 }
 
 const DEFAULT_CONFIG = {
-  userName: "Your Name",
+  userName: "",
   operatorName: "Hermes",
-  companyName: "Your Company",
+  companyName: "",
   profileName: "default",
-  roles: "Founder, Designer, Developer, Operator",
+  roles: "",
   tone: "Direct, practical, sharp, structured, lightly witty when useful.",
   avoid: "generic advice, corporate fluff, unnecessary questions, fake certainty",
   workspaces: [
@@ -857,9 +857,12 @@ function Wizard({
         <aside className="md:sticky md:top-20 md:self-start">
           <div className="rounded-2xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-950/70">
             <div className="mb-2 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-500">
-              <Gauge size={11} className="text-amber-500" /> Progress
+              <Gauge size={11} className="text-amber-500" /> Setup score
             </div>
             <p className="text-2xl font-black text-neutral-900 dark:text-white">{setupScore.overall}%</p>
+            <p className="mt-0.5 text-[10px] leading-4 text-neutral-500">
+              How filled your setup is. Wizard progress is in the bar above.
+            </p>
             <div className="mt-2 h-1 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-900">
               <div className="h-full rounded-full bg-amber-500 transition-all" style={{ width: `${setupScore.overall}%` }} />
             </div>
